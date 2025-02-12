@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, Mock } from 'vitest';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import { SessionProvider, useSession } from '../../context/AuthContext';
 import { getOrders } from "../../services/getOrders";
+import { getSummaryOrders } from "../../utils/sumamry";
 import { Orders } from './Orders';
 
 vi.mock("../../services/getOrders", () => ({
@@ -24,6 +25,8 @@ vi.mock("react-router-dom", async () => {
         useNavigate: () => mockNavigate
     }
 });
+
+
 
 const mockOrders = [{
     "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
@@ -85,4 +88,23 @@ describe('<Orders />', () => {
         });
 
     })
+
+    it('should can visualizer summary', async () => {
+        mockGetOrders.mockResolvedValue(mockOrders);
+        handleRender('superadmin');
+
+        await waitFor(() => {
+            const { totalOrders, averageOrderValue, totalValue } = getSummaryOrders(mockOrders);
+            
+            const totalOrdersElement = screen.getByTestId('total-orders').textContent;
+            const averageOrderValueElement = screen.getByTestId('average-order-value').textContent;
+            const totalValueElement = screen.getByTestId('total-value').textContent;
+
+            expect(totalOrdersElement).toBe(totalOrders.toString());
+            expect(averageOrderValueElement).toBe(`$${averageOrderValue.toString()}`);
+            expect(totalValueElement).toBe(`$${totalValue.toString()}`);
+        });
+
+    })
+
 });
